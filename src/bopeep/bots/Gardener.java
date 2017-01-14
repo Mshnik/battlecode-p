@@ -46,6 +46,9 @@ public strictfp class Gardener {
 
     origin = RobotPlayer.rc.getLocation();
     treeLocations = new MapLocation[TREE_MAX];
+    plantingDirections = new Direction[TREE_MAX];
+    treeLifeRounds = new int[TREE_MAX];
+    plantingLocations = new MapLocation[TREE_MAX];
     for(int i = 0; i < TREE_MAX; i++) {
       float radians = TREE_PLACEMENT_RADIANS * i;
       plantingDirections[i] = new Direction(radians);
@@ -78,7 +81,9 @@ public strictfp class Gardener {
       // Move as close to origin as possible
       try {
         Direction dirToOrigin = currentLocation.directionTo(origin);
-        RobotPlayer.rc.move(dirToOrigin, moveDistLeft);
+        if (dirToOrigin != null && moveDistLeft > 0) {
+          RobotPlayer.rc.move(dirToOrigin, moveDistLeft);
+        }
       } catch (GameActionException e) {
         e.printStackTrace();
       }
