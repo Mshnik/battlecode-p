@@ -5,6 +5,7 @@ import bopeep.bots.Gardener;
 import bopeep.bots.Lumberjack;
 import bopeep.bots.Soldier;
 
+// Note - this class name can't be changed.
 public strictfp class RobotPlayer {
 
   public static RobotController rc;
