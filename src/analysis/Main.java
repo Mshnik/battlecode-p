@@ -54,22 +54,17 @@ class Main {
     int treeBoughtSinceLastGardener = 0;
 
     while(status.treesSize() < treeCount) {
-      if (treeBoughtSinceLastGardener >= treesBeforeNextGardener) {
-        int treesToBuy = Math.max((int)((status.getBullets() - Status.GARDENER_COST)/Status.TREE_COST), 0);
+      if (treeBoughtSinceLastGardener >= treesBeforeNextGardener && status.gardenersSize() < treeCount/TREES_PER_GARDENER) {
         roundResult = status.processRound(
-            new Action().withShouldBuyGardener(true).withTreesToBuy(treesToBuy));
+            new Action().withShouldBuyGardener(true));
 
-        if (roundResult.shouldBuyGardener()) {
-          treeBoughtSinceLastGardener = roundResult.getTreesToBuy();
-        }
-      } else {
-        int treesToBuy = Math.min(status.gardenersSize(), treesBeforeNextGardener - treeBoughtSinceLastGardener);
-        boolean buyGardener = status.getBullets() - Status.TREE_COST * treesToBuy > Status.GARDENER_COST;
-        roundResult = status.processRound(new Action().withTreesToBuy(treesToBuy).withShouldBuyGardener(buyGardener));
-        treeBoughtSinceLastGardener += roundResult.getTreesToBuy();
         if (roundResult.shouldBuyGardener()) {
           treeBoughtSinceLastGardener = 0;
         }
+      } else {
+        int treesToBuy = Math.max(status.gardenersSize(), treesBeforeNextGardener - treeBoughtSinceLastGardener);
+        roundResult = status.processRound(new Action().withTreesToBuy(treesToBuy));
+        treeBoughtSinceLastGardener += roundResult.getTreesToBuy();
       }
     }
 
@@ -77,9 +72,11 @@ class Main {
     while (status.getRound() < MAX_LENGTH) {
       status.processRound(new Action().withBulletsToConvert(10000000));
       if (status.getVp() >= VICTORY_CONDITION) {
+        System.out.println("Finished for values " + treeCount + ", " + treesBeforeNextGardener + " on round\t\t" + status.getRound());
         return status.getRound();
       }
     }
+    System.out.println("Failed for values " + treeCount + ", " + treesBeforeNextGardener);
     return Integer.MAX_VALUE;
   }
 
