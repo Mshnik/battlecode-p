@@ -15,12 +15,11 @@ import util.RingBuffer;
 // TODO: unroll constant for loops if bytecode costs get too high.
 public strictfp class Gardener {
 
-  private static final int GARDENER_STRIDE_RADIUS = 1;
   private static final int TREE_MATURITY_ROUNDS = 80;
 
   private static final int TREE_MAX = 6;
   private static final float MAX_DISTANCE_FROM_ORIGIN = 2f;
-  // Calculated here
+  // 60 degrees in radians. Calculated using assistance of this site:
   // http://www.calculatorsoup.com/calculators/geometry-plane/triangle-theorems.php
   private static final float TREE_PLACEMENT_RADIANS = 1.0472f;
 

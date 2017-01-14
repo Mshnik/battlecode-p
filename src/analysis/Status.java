@@ -21,10 +21,13 @@ class Status {
   private static final int GARDENER_COST = 100;
   private static final int TREE_COST = 50;
 
+  private static final int GARDENER_COOLDOWN = 20;
+
   private int round;
+  private int roundsSinceBoughtGardener;
   private List<Double> bulletsByRound;
   private List<Integer> vpByRound;
-  private int gardenerCount;
+  private List<Gardener> gardeners;
   private List<Tree> trees;
 
   private List<Integer> roundsBoughtGardener;
@@ -32,11 +35,12 @@ class Status {
 
   Status() {
     round = 0;
+    roundsSinceBoughtGardener = GARDENER_COOLDOWN;
     bulletsByRound = new ArrayList<>();
     vpByRound = new ArrayList<>();
     bulletsByRound.add(STARTING_BULLETS);
     vpByRound.add(0);
-    gardenerCount = 0;
+    gardeners = new ArrayList<>();
     trees = new ArrayList<>();
     roundsBoughtGardener = new ArrayList<>();
     roundsBoughtTree = new ArrayList<>();
@@ -54,27 +58,42 @@ class Status {
     vp += bulletsToConvert/10;
     vpByRound.add(vp);
 
+    //Inc gardener rounds
+    roundsSinceBoughtGardener++;
+    for(Gardener g : gardeners) {
+      g.incRoundsSinceBoughtTree();
+    }
+
     Result r = Result.NONE;
 
     switch (action.type) {
       case NOTHING:
         break;
       case BUY_GARDENER:
+        if (roundsSinceBoughtGardener < GARDENER_COOLDOWN) {
+          break;
+        }
         if (bullets < GARDENER_COST) {
           break;
         }
         bullets -= GARDENER_COST;
-        gardenerCount++;
+        gardeners.add(new Gardener());
         roundsBoughtGardener.add(round);
+        roundsSinceBoughtGardener = 0;
         r = Result.BOUGHT_GARDENER;
         break;
       case BUY_TREE:
-        if (gardenerCount == 0) {
+        if (gardeners.isEmpty()) {
           throw new RuntimeException("Illegal Action on round " + round + ", can't buy tree without gardener");
+        }
+        Gardener gardenerToPlant = getGardenerThatCanPlant();
+        if (gardenerToPlant == null) {
+          break;
         }
         if (bullets < TREE_COST) {
           break;
         }
+        gardenerToPlant.resetRoundsSinceBoughtTree();
         roundsBoughtTree.add(round);
         bullets -= TREE_COST;
         trees.add(new Tree());
@@ -105,7 +124,7 @@ class Status {
   private List<Tree> selectTreesToWater() {
     int i = 0;
     List<Tree> treesToWater = new ArrayList<>();
-    while (i < trees.size() && treesToWater.size() < gardenerCount) {
+    while (i < trees.size() && treesToWater.size() < gardeners.size()) {
       Tree tree = trees.remove(0);
       if (tree.isMature()) {
         treesToWater.add(tree);
@@ -115,6 +134,15 @@ class Status {
       i++;
     }
     return treesToWater;
+  }
+
+  private Gardener getGardenerThatCanPlant() {
+    for(Gardener g : gardeners) {
+      if (g.canBuyTree()) {
+        return g;
+      }
+    }
+    return null;
   }
 
   int getRound() {
