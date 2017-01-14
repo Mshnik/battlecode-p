@@ -47,6 +47,7 @@ public strictfp class RobotPlayer {
   // Represents which gardener (index) was just created.
   public final static int GARDENER_COUNT_INDEX = 1;
 
+
   // Noise channel for non-control archons to blast nothing.
   public final static int ARCHON_NOISE_INDEX = GameConstants.BROADCAST_MAX_CHANNELS - 1;
 

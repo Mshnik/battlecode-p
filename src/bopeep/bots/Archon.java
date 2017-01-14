@@ -14,7 +14,7 @@ public strictfp class Archon {
   private static final int CTRL = -1;
   private static boolean hasControl;
 
-  private static final int GARDENERS_TARGET = 10;
+  private static final int GARDENERS_TARGET = 1;
 
   public static void run() {
     System.out.println("I'm an archon!");
