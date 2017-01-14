@@ -118,17 +118,25 @@ public strictfp class Gardener {
 
   private static boolean tryWaterTree(TreeInfo[] treeInfos) {
     System.out.println("Trying to water");
+    // Find the mature tree with the least health, water that one
+    int bestTreeIndex = -1;
+    float treeLowestHealth = GameConstants.BULLET_TREE_MAX_HEALTH;
     for(int i = 0; i < TREE_MAX; i++) {
       if (treeInfos[i] != null
-          && treeLifeRounds[i] > TREE_MATURITY_ROUNDS) {
-        System.out.println(">>Trying direction " + plantingDirections[i]);
-        try {
-          RobotPlayer.rc.water(treeLocations[i]);
-          System.out.println(">>>Watering succeeded");
-          return true;
-        } catch (GameActionException e) {
-          System.out.println(">>>Watering failed");
-        }
+          && treeLifeRounds[i] > TREE_MATURITY_ROUNDS
+          && treeInfos[i].health < treeLowestHealth) {
+        bestTreeIndex = i;
+        treeLowestHealth = treeInfos[i].health;
+      }
+    }
+
+    if (bestTreeIndex != -1) {
+      try {
+        RobotPlayer.rc.water(treeLocations[bestTreeIndex]);
+        System.out.println(">>>Watering succeeded");
+        return true;
+      } catch (GameActionException e) {
+        System.out.println(">>>Watering failed");
       }
     }
     return false;
