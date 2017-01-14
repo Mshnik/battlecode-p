@@ -1,4 +1,4 @@
-package cole_player;
+package opponents.cole_player;
 
 /**
  * Created by Matt on 1/9/17.

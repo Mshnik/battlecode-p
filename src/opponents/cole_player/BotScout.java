@@ -1,8 +1,7 @@
-package cole_player;
+package opponents.cole_player;
 
 
 import battlecode.common.*;
-import cole_player.Globals;
 
 import static battlecode.common.GameConstants.BROADCAST_MAX_CHANNELS;
 

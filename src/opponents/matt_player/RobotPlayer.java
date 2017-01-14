@@ -1,5 +1,5 @@
 
-package matt_player;
+package opponents.matt_player;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

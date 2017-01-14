@@ -1,7 +1,6 @@
-package matt_player;
+package opponents.matt_player;
 
 import battlecode.common.*;
-import jdk.nashorn.internal.runtime.GlobalConstants;
 
 /**
  * Created by Matt on 1/9/17.

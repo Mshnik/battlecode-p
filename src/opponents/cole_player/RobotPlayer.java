@@ -1,4 +1,4 @@
-package cole_player;
+package opponents.cole_player;
 import battlecode.common.*;
 
 import java.util.Map;
@@ -20,8 +20,8 @@ public class RobotPlayer extends Globals {
                 break;
             case GARDENER:
                 //BotGardner.loop();
-                michael_player.Globals.init(theRC);
-                michael_player.BotGardner.loop();
+                opponents.michael_player.Globals.init(theRC);
+                opponents.michael_player.BotGardner.loop();
                 break;
             case SOLDIER:
                 BotSoldier.loop();

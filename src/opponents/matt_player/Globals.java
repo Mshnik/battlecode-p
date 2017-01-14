@@ -1,4 +1,4 @@
-package matt_player;
+package opponents.matt_player;
 
 /**
  * Created by Matt on 1/9/17.

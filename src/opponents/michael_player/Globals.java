@@ -1,4 +1,4 @@
-package michael_player;
+package opponents.michael_player;
 
 /**
  * Created by Matt on 1/9/17.

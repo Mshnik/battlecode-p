@@ -1,4 +1,4 @@
-package matt_player;
+package opponents.matt_player;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;

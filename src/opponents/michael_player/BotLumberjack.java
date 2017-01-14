@@ -1,4 +1,4 @@
-package michael_player;
+package opponents.michael_player;
 
 import battlecode.common.*;
 

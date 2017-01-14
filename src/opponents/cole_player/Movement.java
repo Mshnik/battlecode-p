@@ -1,7 +1,6 @@
-package cole_player;
+package opponents.cole_player;
 
 import battlecode.common.*;
-import cole_player.Globals;
 
 /**
  * Created by cole on 1/11/17.
