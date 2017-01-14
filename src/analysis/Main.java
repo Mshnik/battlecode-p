@@ -23,13 +23,13 @@ class Main {
   }
 
   public static void main(String[] args) {
-    int maxTrees = 100;
+    int maxTrees = 125;
 
     Best best = new Best();
     best.winRound = MAX_LENGTH+1;
 
     for (int i = 0; i < maxTrees; i++) {
-      for(int c = 0; c <= TREES_PER_GARDENER; c++) {
+      for(int c = 6; c <= TREES_PER_GARDENER; c++) {
         //System.out.println(String.format(i + "," + getVictoryLength(i)));
         int victoryRound = compute(i, c);
         if (victoryRound != -1 && victoryRound <= best.winRound) {
@@ -54,7 +54,8 @@ class Main {
     int treeBoughtSinceLastGardener = 0;
 
     while(status.treesSize() < treeCount) {
-      if (treeBoughtSinceLastGardener >= treesBeforeNextGardener && status.gardenersSize() < treeCount/TREES_PER_GARDENER) {
+      boolean needGardener = (float)status.gardenersSize() < (float)treeCount/(float)TREES_PER_GARDENER;
+      if (needGardener && treeBoughtSinceLastGardener >= treesBeforeNextGardener) {
         roundResult = status.processRound(
             new Action().withShouldBuyGardener(true));
 
@@ -62,21 +63,28 @@ class Main {
           treeBoughtSinceLastGardener = 0;
         }
       } else {
-        int treesToBuy = Math.max(status.gardenersSize(), treesBeforeNextGardener - treeBoughtSinceLastGardener);
+        int treesToBuy = status.gardenersSize();
+        if (needGardener) {
+          treesToBuy = Math.min(treesToBuy, treesBeforeNextGardener - treeBoughtSinceLastGardener);
+        } else {
+          treesToBuy = Math.min(treesToBuy, treeCount - status.treesSize());
+        }
         roundResult = status.processRound(new Action().withTreesToBuy(treesToBuy));
         treeBoughtSinceLastGardener += roundResult.getTreesToBuy();
       }
-    }
 
+      if ((float)status.treesSize()/TREES_PER_GARDENER > status.gardenersSize()) {
+        throw new RuntimeException("Illegal tree purchase");
+      }
+    }
     // Convert as many points as possible until victory
     while (status.getRound() < MAX_LENGTH) {
       status.processRound(new Action().withBulletsToConvert(10000000));
       if (status.getVp() >= VICTORY_CONDITION) {
-        System.out.println("Finished for values " + treeCount + ", " + treesBeforeNextGardener + " on round\t\t" + status.getRound());
+        System.out.println("Finished for " + treeCount  + " trees and " + status.gardenersSize() + " gardeners on round\t" + status.getRound());
         return status.getRound();
       }
     }
-    System.out.println("Failed for values " + treeCount + ", " + treesBeforeNextGardener);
     return Integer.MAX_VALUE;
   }
 
