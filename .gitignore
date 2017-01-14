@@ -1,6 +1,7 @@
 /matches
 /deploy/lib
 /deploy/bin
+/out
 *.rms
 *.bc17
 /build/

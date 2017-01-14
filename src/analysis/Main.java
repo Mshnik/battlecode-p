@@ -6,7 +6,7 @@ import java.io.*;
 /**
  * @author Mshnik
  */
-public class Main {
+class Main {
 
   private static final int TREES_PER_GARDENER = (int)(Tree.WATER_HEAL_AMOUNT/(Tree.MAX_HEALTH*Tree.WITHER_RATIO));
   private static final int MAX_LENGTH = 3000;
