@@ -4,6 +4,8 @@ import static bopeep.bots.CommonFunc.*;
 
 import battlecode.common.*;
 import bopeep.RobotPlayer;
+
+import java.util.Arrays;
 import java.util.Iterator;
 import util.RingBuffer;
 
@@ -16,77 +18,54 @@ public strictfp class Gardener {
   private static final int GARDENER_STRIDE_RADIUS = 1;
   private static final int TREE_MATURITY_ROUNDS = 80;
 
-  private static final int TREE_MAX = 10;
-  private static final float PLANT_DISTANCE_FROM_ORIGIN = 2.5f;
-  private static final float MAX_DISTANCE_FROM_ORIGIN = 3.5f;
+  private static final int TREE_MAX = 6;
+  private static final float MAX_DISTANCE_FROM_ORIGIN = 2f;
   // Calculated here
   // http://www.calculatorsoup.com/calculators/geometry-plane/triangle-theorems.php
-  private static final float TREE_PLACEMENT_RADIANS = 0.628319f;
+  private static final float TREE_PLACEMENT_RADIANS = 1.0472f;
 
-  /** Location when this gardnener is spawned. Doesn't change after being set */
-  private static MapLocation origin;
-  /** Locations where the gardener has to move to to plant the 10 trees. Doesn't change after being set */
-  private static MapLocation[] plantingLocations;
-  /** Directions to plant trees when standing at each planting locaiton. Doesn't change after being set */
+  /** Directions to plant trees when standing at each planting locations. Doesn't change after being set */
   private static Direction[] plantingDirections;
   /** Locations where the 10 trees are to be planted. Doesn't change after being set */
   private static MapLocation[] treeLocations;
+  /** Number of trees that exist. Refreshed every round */
+  private static int treeCount;
   /** True once the tree at the given index is mature. False until there is a planted tree that becomes mature */
   private static int[] treeLifeRounds;
 
-  /** current location of this Gardener. Updated as necessary */
-  private static MapLocation currentLocation;
-  /** Amount of move distance left. Updated as necessary */
-  private static float moveDistLeft;
   /** Number of turns since planting a tree. Checked against the cooldown */
   private static int turnsSincePlanting;
 
   public static void run() {
-    System.out.println("I'm a gardener!");
-
-    origin = RobotPlayer.rc.getLocation();
+    MapLocation origin = RobotPlayer.rc.getLocation();
     treeLocations = new MapLocation[TREE_MAX];
     plantingDirections = new Direction[TREE_MAX];
     treeLifeRounds = new int[TREE_MAX];
-    plantingLocations = new MapLocation[TREE_MAX];
     for(int i = 0; i < TREE_MAX; i++) {
       float radians = TREE_PLACEMENT_RADIANS * i;
       plantingDirections[i] = new Direction(radians);
-      plantingLocations[i] = origin.add(radians, PLANT_DISTANCE_FROM_ORIGIN);
       treeLocations[i] = origin.add(radians, MAX_DISTANCE_FROM_ORIGIN);
     }
+    turnsSincePlanting = 1000;
 
     while (true) {
-      // Update this gardener's info
-      currentLocation = RobotPlayer.rc.getLocation();
-      moveDistLeft = GARDENER_STRIDE_RADIUS;
 
       //Check all trees to see if they're alive
       TreeInfo[] treeInfos = checkTrees();
+      System.out.println("Got Tree Infos: " + Arrays.toString(treeInfos));
 
       // Try to plant a tree, if possible.
-      if (treeInfos.length < TREE_MAX
-          && turnsSincePlanting >= GameConstants.BULLET_TREE_CONSTRUCTION_COOLDOWN
+      if (treeCount < TREE_MAX
+          && turnsSincePlanting > GameConstants.BULLET_TREE_CONSTRUCTION_COOLDOWN
           && RobotPlayer.rc.getTeamBullets() >= GameConstants.BULLET_TREE_COST) {
         if (tryPlantTree(treeInfos)) {
           turnsSincePlanting = 0;
-        } else {
-          turnsSincePlanting ++;
         }
       }
+      turnsSincePlanting ++;
 
       // Try to water a tree
       tryWaterTree(treeInfos);
-
-      // Move as close to origin as possible
-      try {
-        Direction dirToOrigin = currentLocation.directionTo(origin);
-        if (dirToOrigin != null && moveDistLeft > 0) {
-          RobotPlayer.rc.move(dirToOrigin, moveDistLeft);
-        }
-      } catch (GameActionException e) {
-        e.printStackTrace();
-      }
 
       // Wait until the next turn, then it will perform this loop again
       Clock.yield();
@@ -103,11 +82,13 @@ public strictfp class Gardener {
    */
   private static TreeInfo[] checkTrees() {
     TreeInfo[] treeInfos = new TreeInfo[TREE_MAX];
+    treeCount = 0;
     for(int i = 0; i < TREE_MAX; i++) {
       try {
         treeInfos[i] = RobotPlayer.rc.senseTreeAtLocation(treeLocations[i]);
         if (treeInfos[i] != null) {
           treeLifeRounds[i]++;
+          treeCount++;
         } else {
           treeLifeRounds[i] = 0;
         }
@@ -119,16 +100,16 @@ public strictfp class Gardener {
   }
 
   private static boolean tryPlantTree(TreeInfo[] treeInfos) {
+    System.out.println("Trying to plant");
     for(int i = 0; i < TREE_MAX; i++) {
-      if (treeInfos[i] == null && plantingLocations[i].isWithinDistance(currentLocation, GARDENER_STRIDE_RADIUS)) {
+      System.out.println(">>Trying direction " + plantingDirections[i]);
+      if (treeInfos[i] == null) {
         try {
-          RobotPlayer.rc.move(plantingLocations[i]);
-          currentLocation = RobotPlayer.rc.getLocation();
-          moveDistLeft -= currentLocation.distanceTo(plantingLocations[i]);
           RobotPlayer.rc.plantTree(plantingDirections[i]);
+          System.out.println(">>>Planting succeeded");
           return true;
         } catch (GameActionException e) {
-          e.printStackTrace();
+          System.out.println(">>>Planting failed");
         }
       }
     }
@@ -136,20 +117,17 @@ public strictfp class Gardener {
   }
 
   private static boolean tryWaterTree(TreeInfo[] treeInfos) {
+    System.out.println("Trying to water");
     for(int i = 0; i < TREE_MAX; i++) {
       if (treeInfos[i] != null
-          && treeLifeRounds[i] > TREE_MATURITY_ROUNDS
-          && treeLocations[i].isWithinDistance(currentLocation, moveDistLeft + GARDENER_STRIDE_RADIUS)) {
-        Direction directionToDest = currentLocation.directionTo(treeLocations[i]);
-        float dist = currentLocation.distanceTo(treeLocations[i]) - GARDENER_STRIDE_RADIUS;
+          && treeLifeRounds[i] > TREE_MATURITY_ROUNDS) {
+        System.out.println(">>Trying direction " + plantingDirections[i]);
         try {
-          RobotPlayer.rc.move(directionToDest, dist);
-          currentLocation = RobotPlayer.rc.getLocation();
-          moveDistLeft -= dist;
           RobotPlayer.rc.water(treeLocations[i]);
+          System.out.println(">>>Watering succeeded");
           return true;
         } catch (GameActionException e) {
-          e.printStackTrace();
+          System.out.println(">>>Watering failed");
         }
       }
     }

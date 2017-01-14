@@ -20,9 +20,19 @@ public strictfp class Archon {
     System.out.println("I'm an archon!");
 
     hasControl = false;
+
+    try {
+      RobotPlayer.rc.hireGardener(Direction.NORTH);
+    } catch (GameActionException e) {
+      e.printStackTrace();
+    }
+
     // The code you want your robot to perform every round should be in this loop
     while (true) {
-
+      try {
+        RobotPlayer.rc.move(Direction.SOUTH);
+      } catch (GameActionException e) {
+      }
 
       // Check if no archon has assumed control
       try {
@@ -34,12 +44,12 @@ public strictfp class Archon {
         System.out.println(ex.getMessage());
       }
 
-      // Check if in control archon or not
-      if (hasControl) {
-        performControlRoutine();
-      } else {
-        performNonControlRoutine();
-      }
+//      // Check if in control archon or not
+//      if (hasControl) {
+//        performControlRoutine();
+//      } else {
+//        performNonControlRoutine();
+//      }
 
       // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
       Clock.yield();
@@ -70,6 +80,7 @@ public strictfp class Archon {
       // Hire one, and move in the opposite direction.
       try {
         RobotPlayer.rc.hireGardener(dir);
+        RobotPlayer.rc.broadcast(RobotPlayer.GARDENER_COUNT_INDEX, gardenerCount+1);
         tryMove(RobotPlayer.rc, dir.opposite());
       } catch (GameActionException e) {
         e.printStackTrace();
