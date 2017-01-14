@@ -8,50 +8,79 @@ import java.io.*;
  */
 class Main {
 
-  private static final int TREES_PER_GARDENER = (int)(Tree.WATER_HEAL_AMOUNT/(Tree.MAX_HEALTH*Tree.WITHER_RATIO));
+  private static final int TREES_PER_GARDENER = 6;
+  private static final int VICTORY_CONDITION = 1000;
   private static final int MAX_LENGTH = 3000;
 
+  private static class Best {
+    int winRound;
+    int trees;
+    int treesBeforeGardener;
 
-  private static int[][] vals;
+    public String toString() {
+      return "Win on round " + winRound + " with " + trees + " trees and " + treesBeforeGardener + " before each gardener";
+    }
+  }
 
   public static void main(String[] args) {
     int maxTrees = 100;
 
-    vals = new int[MAX_LENGTH][maxTrees];
-    for (int i = 0; i < maxTrees; i++) {
-      //System.out.println(String.format(i + "," + getVictoryLength(i)));
-      Status s = compute(i);
+    Best best = new Best();
+    best.winRound = MAX_LENGTH+1;
 
-      for (int x = 0; x < s.getRound(); x++) {
-        vals[x][i] = s.getVpByRound().get(x);
+    for (int i = 0; i < maxTrees; i++) {
+      for(int c = 0; c <= TREES_PER_GARDENER; c++) {
+        //System.out.println(String.format(i + "," + getVictoryLength(i)));
+        int victoryRound = compute(i, c);
+        if (victoryRound != -1 && victoryRound <= best.winRound) {
+          best.winRound = victoryRound;
+          best.trees = i;
+          best.treesBeforeGardener = c;
+        }
       }
     }
 
-    write("out/output.csv");
+    System.out.println(best);
   }
 
-  private static Status compute(int treeCount) {
+  private static int compute(final int treeCount, final int treesBeforeNextGardener) {
 
     Status status = new Status();
+    Action roundResult;
+    do {
+      roundResult = status.processRound(new Action().withShouldBuyGardener(true));
+    } while (!roundResult.shouldBuyGardener());
+
+    int treeBoughtSinceLastGardener = 0;
 
     while(status.treesSize() < treeCount) {
+      if (treeBoughtSinceLastGardener >= treesBeforeNextGardener) {
+        int treesToBuy = Math.max((int)((status.getBullets() - Status.GARDENER_COST)/Status.TREE_COST), 0);
+        roundResult = status.processRound(
+            new Action().withShouldBuyGardener(true).withTreesToBuy(treesToBuy));
 
-      Status.Result r;
-      do {
-        r = status.processRound(Action.BuyGardener(), 0);
-      } while (r != Status.Result.BOUGHT_GARDENER);
-
-      int startCount = status.treesSize();
-      while (status.treesSize() < treeCount && status.treesSize() - startCount < TREES_PER_GARDENER) {
-        status.processRound(Action.BuyTree(), 0);
+        if (roundResult.shouldBuyGardener()) {
+          treeBoughtSinceLastGardener = roundResult.getTreesToBuy();
+        }
+      } else {
+        int treesToBuy = Math.min(status.gardenersSize(), treesBeforeNextGardener - treeBoughtSinceLastGardener);
+        boolean buyGardener = status.getBullets() - Status.TREE_COST * treesToBuy > Status.GARDENER_COST;
+        roundResult = status.processRound(new Action().withTreesToBuy(treesToBuy).withShouldBuyGardener(buyGardener));
+        treeBoughtSinceLastGardener += roundResult.getTreesToBuy();
+        if (roundResult.shouldBuyGardener()) {
+          treeBoughtSinceLastGardener = 0;
+        }
       }
     }
 
     // Convert as many points as possible until victory
     while (status.getRound() < MAX_LENGTH) {
-      status.processRound(Action.Nothing(), 10000000);
+      status.processRound(new Action().withBulletsToConvert(10000000));
+      if (status.getVp() >= VICTORY_CONDITION) {
+        return status.getRound();
+      }
     }
-    return status;
+    return Integer.MAX_VALUE;
   }
 
   private static void write(String dest) {
@@ -63,12 +92,12 @@ class Main {
       PrintStream out = new PrintStream(new FileOutputStream(file, false));
       System.setOut(out);
 
-      for(int[] arr : vals) {
-        for (int i : arr) {
-          System.out.print(i + ",");
-        }
-        System.out.print("\n");
-      }
+//      for(int[] arr : vals) {
+//        for (int i : arr) {
+//          System.out.print(i + ",");
+//        }
+//        System.out.print("\n");
+//      }
 
       System.setOut(stdOut);
     } catch (FileNotFoundException e) {

@@ -4,28 +4,36 @@ package analysis;
  * @author Mshnik
  */
 class Action {
+  private int bulletsToConvert;
+  private boolean buyGardener;
+  private int treesToBuy;
 
-  final ActionEnum type;
-  private Action(ActionEnum type) {
-    this.type = type;
+  Action() {}
+
+  public int getBulletsToConvert() {
+    return bulletsToConvert;
   }
 
-  public static Action Nothing() {
-    return new Action(ActionEnum.NOTHING);
+  public boolean shouldBuyGardener() {
+    return buyGardener;
   }
 
-  public static Action BuyGardener() {
-    return new Action(ActionEnum.BUY_GARDENER);
+  public int getTreesToBuy() {
+    return treesToBuy;
   }
 
-  public static Action BuyTree() {
-    return new Action(ActionEnum.BUY_TREE);
+  public Action withBulletsToConvert(int bulletsToConvert) {
+    this.bulletsToConvert = bulletsToConvert;
+    return this;
   }
 
+  public Action withShouldBuyGardener(boolean shouldBuyGardener) {
+    this.buyGardener = shouldBuyGardener;
+    return this;
+  }
 
-  enum ActionEnum {
-    NOTHING,
-    BUY_GARDENER,
-    BUY_TREE,
+  public Action withTreesToBuy(int treesToBuy) {
+    this.treesToBuy = treesToBuy;
+    return this;
   }
 }
