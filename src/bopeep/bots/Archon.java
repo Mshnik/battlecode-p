@@ -11,7 +11,7 @@ import bopeep.RobotPlayer;
 public strictfp class Archon {
 
   /** Cooldown on hiring a gardener */
-  private static final int GARDENER_COOLDOWN = 20;
+  private static final int GARDENER_COOLDOWN = 10;
   /** Cost of hiring a gardener */
   private static final int GARDENER_COST = 100;
   /** Number of Gardeners the control Archon will try to build */
@@ -19,10 +19,8 @@ public strictfp class Archon {
   /** Radius of an archon */
   private static final int ARCHON_RADIUS = 2;
 
-  /** Value to set to the mem when an archon assumes control. */
-  private static final int CTRL = -1;
-  /** True if this Archon has control, false otherwise */
-  private static boolean hasControl;
+  /** The index of this archon. Set initially, not changed afterwards */
+  private static int archonIndex;
 
   /** Current location of this Archon. Updated each round and when this moves */
   private static MapLocation currentLocation;
@@ -34,7 +32,7 @@ public strictfp class Archon {
   private static int roundsSinceGardenerHired;
 
   public static void run() {
-    hasControl = false;
+    archonIndex = calculateArchonIndex();
     gardenerLocations = new MapLocation[GARDENERS_TARGET];
     roundsSinceGardenerHired = GARDENER_COOLDOWN;
     gardenersHired = 0;
@@ -44,17 +42,9 @@ public strictfp class Archon {
       roundsSinceGardenerHired++;
       currentLocation = RobotPlayer.rc.getLocation();
 
-      // Check if no archon has assumed control
-      try {
-        if (RobotPlayer.rc.readBroadcast(RobotPlayer.ARCHON_CONTROL_INDEX) != CTRL) {
-          RobotPlayer.rc.broadcast(RobotPlayer.ARCHON_CONTROL_INDEX, CTRL);
-          hasControl = true;
-        }
-      } catch (GameActionException ex) {
-        System.out.println(ex.getMessage());
-      }
+      // TODO: check if control Archon has died, potentially assume control.
 
-      if (hasControl) {
+      if (archonIndex == 0) {
         performControlRoutine();
       } else {
         performNonControlRoutine();
@@ -92,6 +82,43 @@ public strictfp class Archon {
     }
 
     move();
+  }
+
+  /**
+   *  Returns the index of this Archon.
+   *  If there is exactly 1 archon, returns 0.
+   *  If there is more than 1 archon, they are ordered from furthest to nearest to other archons.
+   *  Ties broken by y value, increasing, then x value, increasing.
+   */
+  private static int calculateArchonIndex() {
+    Team team = RobotPlayer.rc.getTeam();
+    MapLocation location = RobotPlayer.rc.getLocation();
+    MapLocation[] archonLocations = RobotPlayer.rc.getInitialArchonLocations(team);
+    MapLocation[] enemyArchonLocations = RobotPlayer.rc.getInitialArchonLocations(team.opponent());
+
+    if (archonLocations.length == 1) {
+      return 0;
+    }
+
+    int furtherArchons = 0;
+    float distToEnemyArchons = 0;
+    for(MapLocation enemyLocation : enemyArchonLocations) {
+      distToEnemyArchons += location.distanceTo(enemyLocation);
+    }
+
+    for(MapLocation alliedLocation : archonLocations) {
+      if (! location.equals(alliedLocation)) {
+        float alliedDistToEnemyArchons = 0;
+        for(MapLocation enemyLocation : enemyArchonLocations) {
+          alliedDistToEnemyArchons += alliedLocation.distanceTo(enemyLocation);
+        }
+        if (distToEnemyArchons < alliedDistToEnemyArchons || alliedDistToEnemyArchons == distToEnemyArchons
+            && (location.y < alliedLocation.y || location.y == alliedLocation.y && location.x < alliedLocation.x)) {
+          furtherArchons++;
+        }
+      }
+    }
+    return furtherArchons;
   }
 
   private static void performNonControlRoutine() {

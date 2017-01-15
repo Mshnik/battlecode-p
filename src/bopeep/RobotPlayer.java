@@ -37,13 +37,6 @@ public strictfp class RobotPlayer {
     }
   }
 
-  // Section for indexes of shared mem
-
-  // Represents if which archon has control. Value table:
-  // -1: Archon currently in control, keep calm and carry on
-  // 0: Default starting value - first archon should assume control
-  public final static int ARCHON_CONTROL_INDEX = 0;
-
   // Noise channel for non-control archons to blast nothing.
   public final static int ARCHON_NOISE_INDEX = GameConstants.BROADCAST_MAX_CHANNELS - 1;
 
