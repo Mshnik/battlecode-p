@@ -23,7 +23,7 @@ class Main {
   }
 
   public static void main(String[] args) {
-    int maxTrees = 125;
+    int maxTrees = 222;
 
     Best best = new Best();
     best.winRound = MAX_LENGTH+1;

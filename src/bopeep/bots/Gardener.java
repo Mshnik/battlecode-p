@@ -15,9 +15,14 @@ import util.RingBuffer;
 // TODO: unroll constant for loops if bytecode costs get too high.
 public strictfp class Gardener {
 
+  /** Number of rounds till a tree reaches maturity */
   private static final int TREE_MATURITY_ROUNDS = 80;
+  /** Radius of a gardener */
+  static final int GARDENER_RADIUS = 1;
 
+  /** Target number of trees for a Gardener to build */
   private static final int TREE_MAX = 6;
+  /** Max distance a tree should be from the gardener, from center to center */
   private static final float MAX_DISTANCE_FROM_ORIGIN = 2f;
   // 60 degrees in radians. Calculated using assistance of this site:
   // http://www.calculatorsoup.com/calculators/geometry-plane/triangle-theorems.php
@@ -37,6 +42,7 @@ public strictfp class Gardener {
 
   public static void run() {
     MapLocation origin = RobotPlayer.rc.getLocation();
+    System.out.println(origin);
     treeLocations = new MapLocation[TREE_MAX];
     plantingDirections = new Direction[TREE_MAX];
     treeLifeRounds = new int[TREE_MAX];
@@ -51,7 +57,6 @@ public strictfp class Gardener {
 
       //Check all trees to see if they're alive
       TreeInfo[] treeInfos = checkTrees();
-      System.out.println("Got Tree Infos: " + Arrays.toString(treeInfos));
 
       // Try to plant a tree, if possible.
       if (treeCount < TREE_MAX
@@ -99,16 +104,12 @@ public strictfp class Gardener {
   }
 
   private static boolean tryPlantTree(TreeInfo[] treeInfos) {
-    System.out.println("Trying to plant");
     for(int i = 0; i < TREE_MAX; i++) {
-      System.out.println(">>Trying direction " + plantingDirections[i]);
       if (treeInfos[i] == null) {
         try {
           RobotPlayer.rc.plantTree(plantingDirections[i]);
-          System.out.println(">>>Planting succeeded");
           return true;
         } catch (GameActionException e) {
-          System.out.println(">>>Planting failed");
         }
       }
     }
@@ -116,7 +117,6 @@ public strictfp class Gardener {
   }
 
   private static boolean tryWaterTree(TreeInfo[] treeInfos) {
-    System.out.println("Trying to water");
     // Find the mature tree with the least health, water that one
     int bestTreeIndex = -1;
     float treeLowestHealth = GameConstants.BULLET_TREE_MAX_HEALTH;
@@ -132,10 +132,8 @@ public strictfp class Gardener {
     if (bestTreeIndex != -1) {
       try {
         RobotPlayer.rc.water(treeLocations[bestTreeIndex]);
-        System.out.println(">>>Watering succeeded");
         return true;
       } catch (GameActionException e) {
-        System.out.println(">>>Watering failed");
       }
     }
     return false;
