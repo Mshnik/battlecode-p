@@ -15,7 +15,7 @@ public strictfp class Archon {
   /** Cost of hiring a gardener */
   private static final int GARDENER_COST = 100;
   /** Number of Gardeners the control Archon will try to build */
-  private static final int GARDENERS_TARGET = 13;
+  private static final int GARDENERS_TARGET = 11;
   /** Radius of an archon */
   private static final int ARCHON_RADIUS = 2;
 
@@ -80,7 +80,7 @@ public strictfp class Archon {
         attempts++;
       }
 
-      // Hire one, re-broadcast updated #.
+      // Hire one, store location
       try {
         RobotPlayer.rc.hireGardener(dir);
         gardenerLocations[gardenersHired] = currentLocation.add(dir, ARCHON_RADIUS + Gardener.GARDENER_RADIUS);

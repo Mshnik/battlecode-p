@@ -46,9 +46,12 @@ class Status {
     int treesBought = 0;
 
     // Constant bullet additions
-    bullets += Math.max(BASE_BULLETS_PER_ROUND - BULLET_PER_ROUND_TAX * bullets, 0);
+    bullets += Math.max(Math.min(BASE_BULLETS_PER_ROUND, BASE_BULLETS_PER_ROUND - BULLET_PER_ROUND_TAX * bullets), 0);
 
-    //Inc gardener rounds
+    // Do extra cost
+    bullets -= action.getExtraCost();
+
+    // Inc gardener rounds
     roundsSinceBoughtGardener++;
     for(Gardener g : gardeners) {
       g.incRoundsSinceBoughtTree();
@@ -80,7 +83,7 @@ class Status {
     }
 
     // Convert bullets if desired and possible
-    int bulletsToConvert = Math.min(action.getBulletsToConvert(), (int)(bullets/10)*10);
+    int bulletsToConvert = Math.min(action.getBulletsToConvert(), Math.max(0, (int)(bullets/10)*10));
     bullets -= bulletsToConvert;
     vp += bulletsToConvert/10;
     vpByRound.add(vp);

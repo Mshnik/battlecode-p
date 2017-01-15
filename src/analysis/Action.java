@@ -7,6 +7,7 @@ class Action {
   private int bulletsToConvert;
   private boolean buyGardener;
   private int treesToBuy;
+  private int extraCost;
 
   Action() {}
 
@@ -35,5 +36,14 @@ class Action {
   public Action withTreesToBuy(int treesToBuy) {
     this.treesToBuy = treesToBuy;
     return this;
+  }
+
+  public Action withExtraCost(int extraCost) {
+    this.extraCost = extraCost;
+    return this;
+  }
+
+  public int getExtraCost() {
+    return extraCost;
   }
 }

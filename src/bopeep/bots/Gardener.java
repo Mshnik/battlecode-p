@@ -54,7 +54,6 @@ public strictfp class Gardener {
     turnsSincePlanting = 1000;
 
     while (true) {
-
       //Check all trees to see if they're alive
       TreeInfo[] treeInfos = checkTrees();
 

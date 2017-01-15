@@ -52,6 +52,8 @@ class Main {
     } while (!roundResult.shouldBuyGardener());
 
     int treeBoughtSinceLastGardener = 0;
+    boolean extraCostPaid = false;
+    int extraCost = 80;
 
     while(status.treesSize() < treeCount) {
       boolean needGardener = (float)status.gardenersSize() < (float)treeCount/(float)TREES_PER_GARDENER;
@@ -61,6 +63,7 @@ class Main {
 
         if (roundResult.shouldBuyGardener()) {
           treeBoughtSinceLastGardener = 0;
+          extraCostPaid = false;
         }
       } else {
         int treesToBuy = status.gardenersSize();
@@ -69,7 +72,12 @@ class Main {
         } else {
           treesToBuy = Math.min(treesToBuy, treeCount - status.treesSize());
         }
-        roundResult = status.processRound(new Action().withTreesToBuy(treesToBuy));
+        Action a = new Action().withTreesToBuy(treesToBuy);
+        if (! extraCostPaid) {
+          a = a.withExtraCost(extraCost);
+          extraCostPaid = true;
+        }
+        roundResult = status.processRound(a);
         treeBoughtSinceLastGardener += roundResult.getTreesToBuy();
       }
 
